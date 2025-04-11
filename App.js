@@ -7,13 +7,15 @@ import persistStore from 'redux-persist/es/persistStore';
 import {Provider} from 'react-redux';
 import store from './Redux/store';
 import { AlertNotificationRoot } from 'react-native-alert-notification';
+import BootSplash from 'react-native-bootsplash';
+
 
 const persistor = persistStore(store);
 const App = () => {
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>
-        <NavigationContainer>
+        <NavigationContainer onReady={() => BootSplash.hide({fade: true})}>
           <AlertNotificationRoot>
 
           
