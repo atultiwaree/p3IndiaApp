@@ -60,8 +60,23 @@ export const networkSlice = createApi({
     }),
 
 
+
+    saveFinalData: builder.mutation({
+      query: ({body}) => ({
+        url: '/api/request/save',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Authorization: `Bearer ${token}`,
+        },
+        body,
+      }),
+    }),
+
+
+
     
   }),
 });
 
-export const {useLoginMutation, useLazyGetDistributorsQuery, useLazyGetShopsQuery, useLazyGetDistributorProductsQuery} = networkSlice;
+export const {useLoginMutation, useLazyGetDistributorsQuery, useLazyGetShopsQuery, useLazyGetDistributorProductsQuery, useSaveFinalDataMutation} = networkSlice;

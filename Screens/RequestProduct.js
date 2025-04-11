@@ -1,79 +1,105 @@
-import {
-  View,
-  TextInput,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  ScrollView,
-} from 'react-native';
-import {Picker} from '@react-native-picker/picker';
 import React, {useEffect, useState} from 'react';
 import {
-  getDistributorProducts,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  StyleSheet,
+} from 'react-native';
+import {Picker} from '@react-native-picker/picker';
+import {
   useLazyGetDistributorProductsQuery,
-  useLazyGetDistributorsQuery,
   useLazyGetShopsQuery,
+  useSaveFinalDataMutation,
 } from '../Redux/Slices/Network/networkSlice';
+import {ALERT_TYPE, Toast} from 'react-native-alert-notification';
+import { useNavigation } from '@react-navigation/native';
 
 const RequestProduct = ({route}) => {
-  console.log(route?.params?.distributorId);
-
   const [billId, setBillId] = useState('');
-  const [date, setDate] = useState('');
   const [shopName, setShopName] = useState('');
-  const [code, setCode] = useState('');
-  const [quantity, setQuantity] = useState('');
-
   const [shopList, setShopList] = useState([]);
-
-  //   const shopList = [
-  //     {label: 'Shop 1', value: 'shop1'},
-  //     {label: 'Shop 2', value: 'shop2'},
-  //     {label: 'Shop 3', value: 'shop3'},
-  //   ];
-
-  const productCodes = [
-    {label: 'Code A', value: 'A'},
-    {label: 'Code B', value: 'B'},
-    {label: 'Code C', value: 'C'},
-  ];
-
-  const quantities = ['1', '2', '3', '4', '5'];
+  const [items, setItems] = useState([{productId: '', quantity: ''}]);
+  const [productList, setProductList] = useState([]);
 
   const [getShops] = useLazyGetShopsQuery();
-
   const [getDistributorProducts] = useLazyGetDistributorProductsQuery();
+  const [saveFinalData] = useSaveFinalDataMutation();
+
+
+  const navigation = useNavigation()
+
+  const todayDate = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
 
   const handleGetShops = async () => {
-    const {data, error} = await getShops();
-
+    const {data} = await getShops();
     if (data) {
       setShopList(data);
     }
-
-    // console.log(data, error);
   };
 
   const handleGetProduct = async distributorId => {
-    const {data, error} = await getDistributorProducts({distributorId});
+    const {data} = await getDistributorProducts({distributorId});
+    if (data) {
+      setProductList(data);
+    }
+  };
 
-    console.log(data, error)
+  const handleAddItem = () => {
+    const selectedIds = items.map(i => i.productId).filter(Boolean);
+    const remainingProducts = productList.filter(
+      p => !selectedIds.includes(p._id),
+    );
 
-    
+    if (remainingProducts.length > 0) {
+      setItems(prev => [...prev, {productId: '', quantity: ''}]);
+    }
+  };
 
+  const handleSave = async () => {
+    const payload = {
+      billId,
+      date: todayDate,
+      shopId: shopName,
+      distributorId: route?.params?.distributorId,
+      products: items,
+    };
 
-    
+    console.log('Payload to save:', payload);
+    const {data, error} = await saveFinalData({body: payload});
 
+    if (data) {
+      Toast.show({
+        type: ALERT_TYPE.SUCCESS,
+        title: 'Saved successfully',
+        autoClose: true,
+      });
 
+      navigation.navigate("success")      
+
+    }
+    if (error) {
+      Toast.show({
+        type: ALERT_TYPE.DANGER,
+        title: 'Save error',
+        autoClose: true,
+      });
+    }
   };
 
   useEffect(() => {
     handleGetShops();
-    handleGetProduct(route?.params?.distributorId)
+    handleGetProduct(route?.params?.distributorId);
   }, [route?.params?.distributorId]);
 
-
+  const getAvailableProducts = index => {
+    const selectedIds = items
+      .map((i, idx) => (idx === index ? null : i.productId))
+      .filter(Boolean);
+    return productList.filter(p => !selectedIds.includes(p._id));
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -91,70 +117,80 @@ const RequestProduct = ({route}) => {
         placeholderTextColor="#888"
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Date"
-        value={date}
-        onChangeText={setDate}
-        placeholderTextColor="#888"
-      />
-
-      {/* Shop Name Dropdown */}
       <View style={styles.pickerContainer}>
         <Picker
           selectedValue={shopName}
           onValueChange={value => setShopName(value)}
           style={styles.picker}>
-          <Picker.Item label="ShopName" value="" />
+          <Picker.Item label="Shop Name" value="" />
           {shopList.map(item => (
             <Picker.Item
-              key={item?._id}
-              label={item?.shopName}
-              value={item?.shopId}
+              key={item._id}
+              label={item.shopName}
+              value={item.shopId}
             />
           ))}
         </Picker>
-        {/* <Ionicons name="chevron-down" size={20} color="green" style={styles.icon} /> */}
       </View>
 
-      {/* Code and Quantity in row */}
-      <View style={styles.row}>
-        <View style={[styles.pickerContainer, {flex: 1, marginRight: 8}]}>
-          <Picker
-            selectedValue={code}
-            onValueChange={value => setCode(value)}
-            style={styles.picker}>
-            <Picker.Item label="Code" value="" />
-            {productCodes.map(item => (
-              <Picker.Item
-                key={item.value}
-                label={item.label}
-                value={item.value}
-              />
-            ))}
-          </Picker>
-          {/* <Ionicons name="chevron-down" size={20} color="green" style={styles.icon} /> */}
-        </View>
+      {items.map((item, index) => {
+        const availableProducts = getAvailableProducts(index);
+        const selectedProduct = productList.find(p => p._id === item.productId);
+        const maxQty = selectedProduct?.quantity || 0;
+        const quantityOptions = [];
+        for (let i = 5; i <= maxQty; i += 5) {
+          quantityOptions.push(i);
+        }
 
-        <View style={[styles.pickerContainer, {flex: 1}]}>
-          <Picker
-            selectedValue={quantity}
-            onValueChange={value => setQuantity(value)}
-            style={styles.picker}>
-            <Picker.Item label="Quantity" value="" />
-            {quantities.map(item => (
-              <Picker.Item key={item} label={item} value={item} />
-            ))}
-          </Picker>
-          {/* <Ionicons name="chevron-down" size={20} color="green" style={styles.icon} /> */}
-        </View>
-      </View>
+        return (
+          <View style={styles.row} key={index}>
+            <View style={[styles.pickerContainer, {flex: 1, marginRight: 8}]}>
+              <Picker
+                selectedValue={item.productId}
+                onValueChange={value => {
+                  const updated = [...items];
+                  updated[index].productId = value;
+                  updated[index].quantity = '';
+                  setItems(updated);
+                }}
+                style={styles.picker}>
+                <Picker.Item label="Code" value="" />
+                {availableProducts.map(p => (
+                  <Picker.Item
+                    key={p._id}
+                    label={p.productCode}
+                    value={p._id}
+                  />
+                ))}
+              </Picker>
+            </View>
 
-      <TouchableOpacity>
-        <Text style={styles.addMore}>+ Add More Items</Text>
-      </TouchableOpacity>
+            <View style={[styles.pickerContainer, {flex: 1}]}>
+              <Picker
+                selectedValue={item.quantity}
+                onValueChange={value => {
+                  const updated = [...items];
+                  updated[index].quantity = value;
+                  setItems(updated);
+                }}
+                style={styles.picker}>
+                <Picker.Item label="Quantity" value="" />
+                {quantityOptions.map(qty => (
+                  <Picker.Item key={qty} label={String(qty)} value={qty} />
+                ))}
+              </Picker>
+            </View>
+          </View>
+        );
+      })}
 
-      <TouchableOpacity style={styles.saveButton}>
+      {items.length < productList.length && (
+        <TouchableOpacity onPress={handleAddItem}>
+          <Text style={styles.addMore}>+ Add More Items</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveText}>Save</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -201,12 +237,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     fontFamily: 'Rubik',
-  },
-  icon: {
-    position: 'absolute',
-    right: 15,
-    top: 12,
-    pointerEvents: 'none',
   },
   row: {
     flexDirection: 'row',

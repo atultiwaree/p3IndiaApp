@@ -4,6 +4,7 @@ import Login from '../Screens/Login';
 import {useSelector} from 'react-redux';
 import Home from '../Screens/Home';
 import RequestProduct from '../Screens/RequestProduct';
+import Success from '../Screens/Success';
 const Stack = createNativeStackNavigator();
 
 const StackNavigation = () => {
@@ -38,8 +39,13 @@ const StackNavigation = () => {
             }}
           />
 
-
-
+          <Stack.Screen
+            name="success"
+            component={Success}
+            options={{
+              headerShown: false,
+            }}
+          />
         </>
       )}
     </Stack.Navigator>

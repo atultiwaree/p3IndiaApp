@@ -42,13 +42,18 @@ const Login = () => {
           email: email,
           password: password,
         },
+        
       });
+
+      console.log(data, error)
 
       if (data) {
         dispatch(currentUserInformation(data));
 
         Toast.show({type : ALERT_TYPE.SUCCESS, title : 'Logged In', autoClose : true, })
         navigation.navigate("home")
+
+
 
       }
 
