@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
@@ -31,11 +32,16 @@ const Login = () => {
 
   const dispatch = useDispatch();
 
+  const [loading, setLoading] = useState(false)
+
 
 
   const [login] = useLoginMutation();
 
   const handleLogin = async () => {
+
+    setLoading(true)
+
     if (password !== '' || email !== '') {
       const {data, error} = await login({
         body: {
@@ -53,13 +59,14 @@ const Login = () => {
         Toast.show({type : ALERT_TYPE.SUCCESS, title : 'Logged In', autoClose : true, })
         navigation.navigate("home")
 
-
+        setLoading(false)
 
       }
 
 
       if(error) {
         Toast.show({type : ALERT_TYPE.DANGER, title : 'Something wetn wrong!'})
+        setLoading(false)
       }
     }
   };
@@ -84,6 +91,7 @@ const Login = () => {
         onChangeText={t => setEmail(t)}
         value={email}
         keyboardType="email-address"
+        autoCapitalize='none'
       />
 
       <TextInput
@@ -107,7 +115,7 @@ const Login = () => {
       <Text style={styles.forgotText}>Forgot password?</Text>
 
       <TouchableOpacity style={styles.loginBtn} onPress={() => handleLogin()}>
-        <Text style={styles.loginText}>Login</Text>
+        {loading ? <ActivityIndicator size={'small'} color={'#fff'}/> : <Text style={styles.loginText}>Login</Text>}
       </TouchableOpacity>
     </View>
   );

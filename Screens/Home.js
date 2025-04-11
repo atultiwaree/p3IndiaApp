@@ -125,7 +125,8 @@ const styles = StyleSheet.create({
   picker: {
     width: '100%',
     height: '100%',
-    fontFamily: 'Rubik',
+    fontFamily: 'Rubik-Regular',
+    color : '#1e1e1e'
   },
   icon: {
     position: 'absolute',

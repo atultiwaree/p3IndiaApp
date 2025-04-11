@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import {Picker} from '@react-native-picker/picker';
 import {
@@ -15,7 +16,8 @@ import {
   useSaveFinalDataMutation,
 } from '../Redux/Slices/Network/networkSlice';
 import {ALERT_TYPE, Toast} from 'react-native-alert-notification';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
+import {COLORS, FONT_SIZES} from '../Utility';
 
 const RequestProduct = ({route}) => {
   const [billId, setBillId] = useState('');
@@ -28,8 +30,9 @@ const RequestProduct = ({route}) => {
   const [getDistributorProducts] = useLazyGetDistributorProductsQuery();
   const [saveFinalData] = useSaveFinalDataMutation();
 
+  const [loading, setLoading] = useState(false);
 
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
   const todayDate = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
 
@@ -59,6 +62,8 @@ const RequestProduct = ({route}) => {
   };
 
   const handleSave = async () => {
+    setLoading(true);
+
     const payload = {
       billId,
       date: todayDate,
@@ -77,10 +82,12 @@ const RequestProduct = ({route}) => {
         autoClose: true,
       });
 
-      navigation.navigate("success")      
+      setLoading(false);
 
+      navigation.navigate('success');
     }
     if (error) {
+      setLoading(false);
       Toast.show({
         type: ALERT_TYPE.DANGER,
         title: 'Save error',
@@ -191,7 +198,11 @@ const RequestProduct = ({route}) => {
       )}
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveText}>Save</Text>
+        {loading ? (
+          <ActivityIndicator color={'#fff'} size={'small'} />
+        ) : (
+          <Text style={styles.saveText}>Save</Text>
+        )}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -215,18 +226,19 @@ const styles = StyleSheet.create({
   input: {
     width: '100%',
     height: 45,
-    borderColor: 'green',
+    borderColor: COLORS.borderGreen,
     borderWidth: 1,
     borderRadius: 8,
     marginBottom: 15,
     paddingHorizontal: 10,
-    fontFamily: 'Rubik',
+    fontFamily: 'Rubik-Regular',
+    color: '#1e1e1e',
   },
   pickerContainer: {
     width: '100%',
     height: 45,
     borderWidth: 1,
-    borderColor: 'green',
+    borderColor: COLORS.borderGreen,
     borderRadius: 8,
     marginBottom: 15,
     justifyContent: 'center',
@@ -236,7 +248,8 @@ const styles = StyleSheet.create({
   picker: {
     width: '100%',
     height: '100%',
-    fontFamily: 'Rubik',
+    fontFamily: 'Rubik-Regular',
+    color: '#1e1e1e',
   },
   row: {
     flexDirection: 'row',
@@ -247,12 +260,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     marginBottom: 20,
-    fontFamily: 'Rubik',
+    fontFamily: 'Rubik-Regular',
   },
   saveButton: {
     width: '100%',
     height: 45,
-    backgroundColor: '#70B570',
+    backgroundColor: COLORS.primaryGreen,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
@@ -260,7 +273,7 @@ const styles = StyleSheet.create({
   },
   saveText: {
     color: '#fff',
-    fontSize: 16,
-    fontFamily: 'Rubik',
+    fontSize: FONT_SIZES[16],
+    fontFamily: 'Rubik-SemiBold',
   },
 });
