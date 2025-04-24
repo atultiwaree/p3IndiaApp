@@ -44,7 +44,17 @@ const RequestProduct = ({route}) => {
   };
 
   const handleGetProduct = async distributorId => {
-    const {data} = await getDistributorProducts({distributorId});
+
+    console.log(distributorId, "::::___::::")
+
+    const {data, error} = await getDistributorProducts({distributorId});
+
+
+
+
+
+    console.log(data, "GET PRODUCT:::____::::", error)
+
     if (data) {
       setProductList(data);
     }

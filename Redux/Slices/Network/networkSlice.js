@@ -5,7 +5,7 @@ export const networkSlice = createApi({
   reducerPath: 'networkSlice',
 
   baseQuery: fetchBaseQuery({
-    baseUrl: 'https://p3indiabackend.onrender.com/',
+    baseUrl: 'https://p3india.vercel.app',
   }),
 
   endpoints: builder => ({
@@ -32,10 +32,6 @@ export const networkSlice = createApi({
       },
     }),
 
-
-
-
-
     getShops: builder.query({
       query: () => {
         return {
@@ -46,7 +42,6 @@ export const networkSlice = createApi({
         };
       },
     }),
-
 
     getDistributorProducts: builder.query({
       query: ({distributorId}) => {
