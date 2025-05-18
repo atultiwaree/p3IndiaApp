@@ -1,7 +1,15 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import { COLORS } from '../Utility';
 
 const Success = () => {
+  const navigation = useNavigation();
+
+  const handleGoHome = () => {
+    navigation.navigate('home');
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -10,6 +18,10 @@ const Success = () => {
         resizeMode="contain"
       />
       <Text style={styles.text}>Data saved successfully</Text>
+
+      <TouchableOpacity style={styles.button} onPress={handleGoHome}>
+        <Text style={styles.buttonText}>Back to Home</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -22,6 +34,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
+    paddingHorizontal: 20,
   },
   image: {
     width: 100,
@@ -32,5 +45,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     fontFamily: 'Rubik',
+    marginBottom: 30,
+  },
+  button: {
+    backgroundColor: COLORS.darkGreen,
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontFamily: 'Rubik-Medium',
+    fontSize: 16,
   },
 });
