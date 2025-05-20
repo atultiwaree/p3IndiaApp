@@ -34,7 +34,7 @@ const RequestProduct = ({route}) => {
 
   const navigation = useNavigation();
 
-  const todayDate = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
+  const todayDate = new Date().toISOString().slice(0, 10);
 
   const handleGetShops = async () => {
     const {data} = await getShops();
@@ -44,17 +44,7 @@ const RequestProduct = ({route}) => {
   };
 
   const handleGetProduct = async distributorId => {
-
-    console.log(distributorId, "::::___::::")
-
     const {data, error} = await getDistributorProducts({distributorId});
-
-
-
-
-
-    console.log(data, "GET PRODUCT:::____::::", error)
-
     if (data) {
       setProductList(data);
     }
@@ -71,31 +61,62 @@ const RequestProduct = ({route}) => {
     }
   };
 
+
   const handleSave = async () => {
     setLoading(true);
-
+  
+    const detailedProducts = items.map(item => {
+      const product = productList.find(p => p._id === item.productId);
+      const quantity = Number(item.quantity);
+      const price = product?.price || 0;
+      const total = price * quantity;
+      const code = product?.productCode || 'N/A';
+  
+      console.log(`${code} X ${quantity} = ₹${total}`);
+  
+      return {
+        code,
+        quantity,
+        price,
+        total,
+      };
+    });
+  
+    const totalAmount = detailedProducts.reduce((sum, item) => sum + item.total, 0);
+    console.log(`Total Amount: ₹${totalAmount}`);
+  
     const payload = {
       billId,
       date: todayDate,
       shopId: shopName,
       distributorId: route?.params?.distributorId,
-      products: items,
+      products: detailedProducts, // using `code` instead of `_id`
+      totalAmount,
     };
-
+  
     console.log('Payload to save:', payload);
+  
     const {data, error} = await saveFinalData({body: payload});
-
+  
     if (data) {
       Toast.show({
         type: ALERT_TYPE.SUCCESS,
         title: 'Saved successfully',
         autoClose: true,
       });
-
       setLoading(false);
-
-      navigation.navigate('success');
+      
+      navigation.navigate('OrderSummary', {
+        products: detailedProducts,
+        totalAmount,
+        billId,
+        shopId: shopName,
+        date: todayDate,
+      });
+      
+      
     }
+  
     if (error) {
       setLoading(false);
       Toast.show({
@@ -105,6 +126,7 @@ const RequestProduct = ({route}) => {
       });
     }
   };
+  
 
   useEffect(() => {
     handleGetShops();
@@ -154,8 +176,9 @@ const RequestProduct = ({route}) => {
         const availableProducts = getAvailableProducts(index);
         const selectedProduct = productList.find(p => p._id === item.productId);
         const maxQty = selectedProduct?.quantity || 0;
+
         const quantityOptions = [];
-        for (let i = 5; i <= maxQty; i += 5) {
+        for (let i = 1; i <= maxQty; i++) {
           quantityOptions.push(i);
         }
 

@@ -8,6 +8,7 @@ import Home from '../Screens/Home';
 import RequestProduct from '../Screens/RequestProduct';
 import Success from '../Screens/Success';
 import CustomTitleText from '../CustomText';
+import OrderSummaryScreen from '../Screens/OrderSummaryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -70,8 +71,8 @@ const StackNavigation = () => {
           />
 
           <Stack.Screen
-            name="success"
-            component={Success}
+            name="OrderSummary"
+            component={OrderSummaryScreen}
             options={{
               headerShown: false,
             }}
